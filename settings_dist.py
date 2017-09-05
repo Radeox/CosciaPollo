@@ -2,7 +2,7 @@
 token = 'TOKEN'
 
 # List of words detected by the bot
-hot_words = 'pollo'
+hot_words = 'pollo|gallina|🍗|🐔'
 
 # URL where the bot get the images
 search_keyword = 'chicken+leg'
