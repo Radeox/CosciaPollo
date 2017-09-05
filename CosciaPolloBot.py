@@ -1,57 +1,62 @@
-import telepot
-import time
-import string
+import os
+import sys
 import re
 import requests
+import telepot
+from time import sleep
 from random import randint
-from pprint import pprint
-from io import BytesIO
-#from LogErrors import MakeLog
+from settings import token, hot_words, image_url
 
-
-g_url = 'https://www.google.it/search?q=coscia+di+pollo&espv=2&biw=1707&bih=818&source=lnms&tbm=isch&sa=X&ved=0ahUKEwid0-zs4anSAhUHVxQKHSgOC4cQ_AUIBigB'
-
-r = requests.get(g_url, stream=True)
-r = r.content
-#r is now my html code
-
-#r = r.decode("utf-8")
-
-pattern = '<img .+?>'
-
-try:
-    found = re.findall(pattern, str(r))
-except AttributeError:
-    found = ''
-
-pattern = 'src=\"(.+?)\"'
-
-found = re.findall(pattern, str(r))
-
-print(len(found))
-
-for i, val in enumerate(found):
-  if str(re.search('https', val))=='None':
-    del found[i]
 
 def handle(msg):
-  global found
-  content_type, chat_type, chat_id = telepot.glance(msg)
+    content_type, chat_type, chat_id = telepot.glance(msg)
 
-  chat_id = msg['chat']['id']
-  command_input = msg['text']
+    chat_id = msg['chat']['id']
+    command_input = msg['text']
 
-  pattern = 'pollo|polli|pollastrello|pollastrella'
+    # Check if a Hot word is in the message
+    if re.findall(hot_words, command_input.lower()):
+        bot.sendPhoto(chat_id, get_random_image())
 
-  cp = re.findall(pattern, command_input.lower())
-  if cp:
-      bot.sendPhoto(chat_id, found[randint(0,len(found))])
 
-bot = telepot.Bot('247025363:AAHdRykgnCXdP3Lb6INVADAs0r5RNlF7LbY')
+# Get random image
+def get_random_image():
+    r = requests.get(image_url, stream=True)
+    r = r.content
 
-bot.message_loop(handle)
+    # Get all <img>
+    pattern = '<img .+?>'
+    found = re.findall(pattern, str(r))
 
-print("I'm Working Master.")
+    # Get all 'src' from <img>
+    pattern = 'src=\"(.+?)\"'
+    found = re.findall(pattern, str(r))
 
-while 1:
-  time.sleep(10)
+    return found[randint(0, len(found)-1)]
+
+
+# Main
+print("Starting CosciaPolloBot...")
+
+# PID file
+pid = str(os.getpid())
+pidfile = "/tmp/cosciapollobot.pid"
+
+# Check if PID exist
+if os.path.isfile(pidfile):
+    print("%s already exists, exiting!" % pidfile)
+    sys.exit()
+
+# Create PID file
+f = open(pidfile, 'w')
+f.write(pid)
+
+# Start working
+try:
+    bot = telepot.Bot(token)
+    bot.message_loop(handle)
+
+    while 1:
+        sleep(10)
+finally:
+    os.unlink(pidfile)
