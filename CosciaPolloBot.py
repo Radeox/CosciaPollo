@@ -50,6 +50,7 @@ if os.path.isfile(pidfile):
 # Create PID file
 f = open(pidfile, 'w')
 f.write(pid)
+f.close()
 
 # Start working
 try:
