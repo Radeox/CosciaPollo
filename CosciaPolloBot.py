@@ -5,7 +5,7 @@ import requests
 import telepot
 from time import sleep
 from random import randint
-from settings import token, hot_words, image_url
+from heroku_settings import token, hot_words, image_url
 
 
 def handle(msg):
