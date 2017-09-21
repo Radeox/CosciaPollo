@@ -1,1 +1,1 @@
-web: python CosciaPolloBot.py
+worker: python CosciaPolloBot.py
