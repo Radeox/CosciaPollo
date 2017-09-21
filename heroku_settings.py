@@ -1,3 +1,5 @@
+import os
+
 # Heroku setup vars
 token = os.environ['TOKEN']
 hot_words = os.environ['HOT_WORDS']
