@@ -10,8 +10,6 @@ from settings import token, hot_words, image_url
 
 def handle(msg):
     content_type, chat_type, chat_id = telepot.glance(msg)
-
-    chat_id = msg['chat']['id']
     command_input = msg['text']
 
     # Check if a Hot word is in the message
