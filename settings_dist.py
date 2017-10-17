@@ -1,10 +1,9 @@
 # Your Bot token (get it from BotFather)
-token = 'TOKEN'
+TOKEN = 'TOKEN'
 
 # List of words detected by the bot
-hot_words = 'pollo|gallina|🍗|🐔'
+HOT_WORDS = 'pollo|gallina|polla|coscia|gallo|pulcino|🍗|🐔'
 
 # URL where the bot get the images
-search_keyword = 'chicken+leg'
-image_url = 'https://encrypted.google.com/search?q=' +\
-            search_keyword + '&tbm=isch'
+SEARCH_KEYWORD = 'chicken+leg'
+IMAGE_URL = "https://www.google.co.in/search?q=" + SEARCH_KEYWORD + "&source=lnms&tbm=isch"

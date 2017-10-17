@@ -1,61 +1,83 @@
 import os
 import sys
 import re
-import requests
-import telepot
+import json
+
 from time import sleep
 from random import randint
-from settings import token, hot_words, image_url
+
+import urllib3
+from bs4 import BeautifulSoup
+
+import telepot
+from settings import TOKEN, HOT_WORDS, IMAGE_URL
 
 
 def handle(msg):
+    """
+    Handle messages from users
+    """
     content_type, chat_type, chat_id = telepot.glance(msg)
     command_input = msg['text']
 
     # Check if a Hot word is in the message
-    if re.findall(hot_words, command_input.lower()):
-        bot.sendPhoto(chat_id, get_random_image())
+    if re.findall(HOT_WORDS, command_input.lower()):
+        bot.sendPhoto(chat_id, get_random_image(IMAGE_URL))
 
 
-# Get random image
-def get_random_image():
-    r = requests.get(image_url, stream=True)
-    r = r.content
+def get_random_image(url):
+    """
+    Get random image from Google image result page
+    """
+    header = {'User-Agent':"Mozilla/5.0 (Windows NT 6.1; WOW64)\
+               AppleWebKit/537.36 (KHTML, like Gecko)\
+               Chrome/43.0.2357.134\
+               Safari/537.36"
+             }
 
-    # Get all <img>
-    pattern = '<img .+?>'
-    found = re.findall(pattern, str(r))
+    soup = get_soup(url, header)
+    found = []
 
-    # Get all 'src' from <img>
-    pattern = 'src=\"(.+?)\"'
-    found = re.findall(pattern, str(r))
+    for a in soup.find_all("div", {"class":"rg_meta"}):
+        link = json.loads(a.text)["ou"]
+        found.append(link)
 
     return found[randint(0, len(found)-1)]
+
+
+def get_soup(url, header=None):
+    """
+    Get soup from url
+    """
+    http = urllib3.PoolManager()
+    response = http.request('GET', url, headers=header)
+
+    return BeautifulSoup(response.data, 'lxml')
 
 
 # Main
 print("Starting CosciaPolloBot...")
 
 # PID file
-pid = str(os.getpid())
-pidfile = "/tmp/cosciapollobot.pid"
+PID = str(os.getpid())
+PIDFILE = "/tmp/cosciapollobot.pid"
 
 # Check if PID exist
-if os.path.isfile(pidfile):
-    print("%s already exists, exiting!" % pidfile)
+if os.path.isfile(PIDFILE):
+    print("%s already exists, exiting!" % PIDFILE)
     sys.exit()
 
 # Create PID file
-f = open(pidfile, 'w')
-f.write(pid)
-f.close()
+with open(PIDFILE, 'w') as f:
+    f.write(PID)
+    f.close()
 
 # Start working
 try:
-    bot = telepot.Bot(token)
+    bot = telepot.Bot(TOKEN)
     bot.message_loop(handle)
 
     while 1:
         sleep(10)
 finally:
-    os.unlink(pidfile)
+    os.unlink(PIDFILE)
