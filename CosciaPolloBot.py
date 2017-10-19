@@ -6,7 +6,7 @@ import json
 from time import sleep
 from random import randint
 
-import urllib3
+import requests
 from bs4 import BeautifulSoup
 
 import telepot
@@ -49,10 +49,9 @@ def get_soup(url, header=None):
     """
     Get soup from url
     """
-    http = urllib3.PoolManager()
-    response = http.request('GET', url, headers=header)
+    response = requests.get(url, headers=header)
 
-    return BeautifulSoup(response.data, 'lxml')
+    return BeautifulSoup(response.content, "lxml")
 
 
 # Main
