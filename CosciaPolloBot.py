@@ -35,23 +35,19 @@ def get_random_image(url):
                Safari/537.36"
              }
 
-    soup = get_soup(url, header)
-    found = []
+    # Request site
+    response = requests.get(url, headers=header)
+    c = response.content
 
-    for a in soup.find_all("div", {"class":"rg_meta"}):
-        link = json.loads(a.text)["ou"]
-        found.append(link)
+    # Get all <img>
+    pattern = '<img .+?>'
+    found = re.findall(pattern, str(c))
+
+    # Get all 'src' from <img>
+    pattern = 'src=\"(.+?)\"'
+    found = re.findall(pattern, str(c))
 
     return found[randint(0, len(found)-1)]
-
-
-def get_soup(url, header=None):
-    """
-    Get soup from url
-    """
-    response = requests.get(url, headers=header)
-
-    return BeautifulSoup(response.content, "lxml")
 
 
 # Main
