@@ -20,9 +20,11 @@ def handle(msg):
     content_type, chat_type, chat_id = telepot.glance(msg)
     command_input = msg['text']
 
-    # Check if a Hot word is in the message
-    if re.findall(HOT_WORDS, command_input.lower()):
-        bot.sendPhoto(chat_id, get_random_image(IMAGE_URL))
+    # Split message
+    for c in command_input.split():
+        # Check if a Hot word is in the message
+        if re.match(HOT_WORDS, c.lower()):
+            bot.sendPhoto(chat_id, get_random_image(IMAGE_URL))
 
 
 def get_random_image(url):
