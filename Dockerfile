@@ -1,5 +1,4 @@
 FROM python:3.7-slim-buster
-MAINTAINER radeox "dawid.weglarz95@gmail.com"
 
 ENV PYTHONUNBUFFERED 1
 

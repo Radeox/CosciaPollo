@@ -1,3 +1,2 @@
 telepot
-bs4
 requests
