@@ -1,31 +1,33 @@
+import logging
 import os
 import re
 from random import randint
-from time import sleep
 
 import requests
-import telepot
+from telegram import Update
+from telegram.ext import Filters, MessageHandler, Updater
 
 from triggers import TRIGGERS
 
+# Enable logging
+logging.basicConfig(
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    level=logging.INFO,
+)
 
-def handle(msg):
+logger = logging.getLogger(__name__)
+
+
+def msgHandler(update: Update, _):
     """
-    Handle messages from users
+    Check if a Hot word is in the message
     """
-    content_type, chat_type, chat_id = telepot.glance(msg)
-    command_input = msg['text']
-
-    for c in command_input.split():
-        for trigger in TRIGGERS:
-            # Check if a Hot word is in the message
-            if re.match("|".join(trigger['HOT_WORDS']).lower(), c.lower()):
-                try:
-                    print(f"> @ {msg['from']['username']} asked for some {trigger['CONTEXT']}")
-                except:
-                    print(f"> {msg['from']['first_name']} asked for some {trigger['CONTEXT']}")
-
-                bot.sendPhoto(chat_id, get_random_image(trigger['SOURCE_LINK']))
+    for trigger in TRIGGERS:
+        for hotword in trigger["HOT_WORDS"]:
+            if hotword in update.message.text.lower():
+                link = get_random_image(trigger["SOURCE_LINK"])
+                if link:
+                    update.message.reply_photo(photo=link)
 
 
 def get_random_image(url):
@@ -33,24 +35,34 @@ def get_random_image(url):
     Get random image from image result page
     """
     img = None
-    header = { 'User-Agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36" }
+    header = {
+        "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101 Firefox/102.0"
+    }
 
     # Request site
     response = requests.get(url, headers=header)
     c = response.content
 
     # Get all <img>
-    pattern = '<img .+?>'
+    pattern = "<img .+?>"
     found = re.findall(pattern, str(c))
 
     # Get all 'src' from <img>
-    pattern = 'src=\"(.+?)\"'
+    pattern = 'src="(.+?)"'
     found = re.findall(pattern, str(c))
 
-    while not is_url_image(img):
-        img = found[randint(0, len(found)-1)]
+    # Filter those without 'http'
+    found = [f for f in found if "http" in f]
 
-    return img
+    while found:
+        img = found.pop(randint(0, len(found) - 1))
+        if is_url_image(img):
+            break
+
+    if img is None:
+        return None
+    else:
+        return img
 
 
 def is_url_image(image_url):
@@ -58,7 +70,8 @@ def is_url_image(image_url):
 
     try:
         r = requests.head(image_url)
-    except:
+    except Exception as e:
+        logger.error(e)
         return False
 
     if r.headers["content-type"] in image_formats:
@@ -67,11 +80,20 @@ def is_url_image(image_url):
     return False
 
 
-print("Starting CosciaPolloBot...")
+def main():
+    print("Starting CosciaPolloBot...")
+    TOKEN = os.environ["TOKEN"]
 
-# Start working
-bot = telepot.Bot(os.environ['TOKEN'])
-bot.message_loop(handle)
+    # Setup bot
+    updater = Updater(TOKEN, use_context=True)
+    dispatcher = updater.dispatcher
 
-while 1:
-    sleep(100)
+    dispatcher.add_handler(MessageHandler(Filters.text, msgHandler))
+
+    # Start the Bot
+    updater.start_polling()
+    updater.idle()
+
+
+if __name__ == "__main__":
+    main()

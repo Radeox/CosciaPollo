@@ -2,6 +2,7 @@ version: '3'
 
 services:
   bot:
+    container_name: CosciaPollo
     build: .
     command: python bot.py
     env_file:
