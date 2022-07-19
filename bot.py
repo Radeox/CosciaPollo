@@ -36,20 +36,21 @@ def get_random_image(url):
     """
     img = None
     header = {
-        "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101 Firefox/102.0"
+        "User-Agent": "Mozilla/5.0 (Linux; Android 4.4; Nexus 5 Build/_BuildID)"
+        + " AppleWebKit/537.36 (KHTML, like Gecko)"
+        + " Version/4.0 Chrome/30.0.0.0 Mobile Safari/537.36"
     }
 
     # Request site
     response = requests.get(url, headers=header)
-    c = response.content
 
     # Get all <img>
-    pattern = "<img .+?>"
-    found = re.findall(pattern, str(c))
+    pattern = "<img .*>"
+    found = re.findall(pattern, str(response.content))
 
     # Get all 'src' from <img>
     pattern = 'src="(.+?)"'
-    found = re.findall(pattern, str(c))
+    found = re.findall(pattern, str(found))
 
     # Filter those without 'http'
     found = [f for f in found if "http" in f]
