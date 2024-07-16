@@ -5,7 +5,7 @@ from random import randint
 
 import requests
 from telegram import Update
-from telegram.ext import Filters, MessageHandler, Updater
+from telegram.ext import Application, MessageHandler, filters
 
 from triggers import TRIGGERS
 
@@ -18,7 +18,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-def msgHandler(update: Update, _):
+async def msgHandler(update: Update, _):
     """
     Check if a Hot word is in the message
     """
@@ -27,7 +27,7 @@ def msgHandler(update: Update, _):
             if hotword in update.message.text.lower():
                 link = get_random_image(trigger["SOURCE_LINK"])
                 if link:
-                    update.message.reply_photo(photo=link)
+                    await update.message.reply_photo(photo=link)
 
 
 def get_random_image(url):
@@ -81,19 +81,16 @@ def is_url_image(image_url):
     return False
 
 
-def main():
+def main() -> None:
     print("Starting CosciaPolloBot...")
     TOKEN = os.environ["TOKEN"]
 
     # Setup bot
-    updater = Updater(TOKEN, use_context=True)
-    dispatcher = updater.dispatcher
-
-    dispatcher.add_handler(MessageHandler(Filters.text, msgHandler))
+    application = Application.builder().token(TOKEN).build()
+    application.add_handler(MessageHandler(filters.TEXT, msgHandler))
 
     # Start the Bot
-    updater.start_polling()
-    updater.idle()
+    application.run_polling()
 
 
 if __name__ == "__main__":
